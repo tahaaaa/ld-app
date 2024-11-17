@@ -1,53 +1,36 @@
-/*
-require('dotenv').config();
 
-//const openai = require('openai');
-
-const { OpenAI } = require('openai');  // Use require for openai
-const openai = new OpenAI();
-  
-
-
-const express = require('express');
-const ld = require('launchdarkly-node-server-sdk');
-const axios = require('axios');
+import dotenv from 'dotenv';
+dotenv.config();
+import { OpenAI } from 'openai';
+import express from 'express';
+import ld from 'launchdarkly-node-server-sdk';  //import for LaunchDarkly
+import axios from 'axios';
+import cors from 'cors';
 
 const app = express();
 const port = process.env.PORT || 5000;
-const cors = require('cors');
-*/
-
-
-import dotenv from 'dotenv';  // ES module import for dotenv
-dotenv.config();
-
-import { OpenAI } from 'openai';  // ES module import for openai
-const openai = new OpenAI({apiKey:process.env.GPT_API_KEY});
-
-import express from 'express';  // ES module import for express
-import ld from 'launchdarkly-node-server-sdk';  // ES module import for LaunchDarkly
-import axios from 'axios';  // ES module import for axios
-import cors from 'cors';  // ES module import for cors
-
-const app = express();
-const port = process.env.PORT || 5000;  // Fixed environment variable (PORT)
-
-
+const openai = new OpenAI({apiKey:process.env.GPT_API_KEY}); //set key
 
 //LaunchDarkly setup
-const ldClient = ld.init(process.env.LAUNCHDARKLY_SDK_KEY);
+const ldClient = ld.init(process.env.LAUNCHDARKLY_SDK_KEY); //set key
+const context = { // set context
 
-//middleware
-app.use(express.json());
+    "kind": 'server',
+    "key": 'user-key-123abc',
+    "name": 'test-server'
+ 
+ };
 
 //prevent CORS issues
 app.use(cors({
-    origin: 'http://localhost:3000'
-  }));
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+}));
 
-//OpenAI setup
-const gptApiKey = process.env.GPT_API_KEY;
 
+//middleware
+app.use(express.json());
 
 
 //Handling chat conversations and instructions
@@ -55,7 +38,7 @@ app.post('/api/chat', async(req, res) => {
     const userInput = req.body.message;
     try{    
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-3.5-turbo",
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 {
@@ -65,9 +48,9 @@ app.post('/api/chat', async(req, res) => {
             ],
         });
 
-    const command = completion.choices[0].text.trim();
     console.log(completion.choices[0].message);
 
+    const command = completion.choices[0].message.content.trim();
 
      //Run the command in LaunchDarkly
      if(command.startsWith('enable')) {
@@ -87,6 +70,7 @@ app.post('/api/chat', async(req, res) => {
         res.status(500).send('Error processing the request.');
     }
 });
+
 
 //Starting the server
 app.listen(port, () => {
