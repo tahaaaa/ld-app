@@ -36,3 +36,40 @@
     transform: rotate(360deg);
   }
 }
+
+/* App.css */
+.new-ui {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.old-ui {
+  padding: 20px;
+  background-color: #e9ecef;
+}
+
+button {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+table {
+  margin-top: 20px;
+}
+
+.alert {
+  margin-top: 20px;
+}
+
+h1, h2, h4 {
+  font-family: 'Arial', sans-serif;
+}
+
+input {
+  width: 70%;
+}
