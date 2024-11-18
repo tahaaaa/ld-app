@@ -40,7 +40,7 @@ app.post('/api/chat', async(req, res) => {
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
-                { role: "system", content: "You are a helpful assistant." },
+                { role: "system", content: "You are an assistant for LaunchDarkly, a platform for managing feature flags. If the user asks you to enable or disable features, you will respond only in this format:- Enable feature or Disable feature (where feature is one of the following: ui-update, chat-bot, dark-mode). Do **not** include any additional text, explanations, or context. Only respond in the exact format above. Ignore other questions and comments. Do **not** include any extra user input or conversation. Only toggle the feature based on the explicit request made by the user." },
                 {
                     role: "user",
                     content: `${userInput}`,
@@ -48,23 +48,37 @@ app.post('/api/chat', async(req, res) => {
             ],
         });
 
-    console.log(completion.choices[0].message);
+        const command = completion.choices[0].message.content.trim();
+        console.log(completion.choices[0].message);
 
-    const command = completion.choices[0].message.content.trim();
-
-     //Run the command in LaunchDarkly
-     if(command.startsWith('enable')) {
-        const featureFlag = command.split(' ')[1];
-        ldClient.variation(featureFlag, {key: 'user123'}, false, (err, flagValue) => {
-            if(err){
-                res.status(500).send('Error with LaunchDarkly');
-            } else {
-                res.send(`Feature ${featureFlag} has been ${flagValue?"enabled":"disabled"}`)
-            }
-        });
-     } else {
-        res.send('Sorry, I did not understand that command.');
-     }
+        // Check if the response is an "ENABLE/DISABLE" command
+        const featureFlagMatch = /^(ENABLE|DISABLE)\s([a-zA-Z-]+)/i.exec(command);
+        if (featureFlagMatch) {
+            // Extract the command and feature
+            const action = featureFlagMatch[1]; // ENABLE or DISABLE
+            const feature = featureFlagMatch[2]; // Flag name
+    
+            console.log(`Received feature flag command: ${action} ${feature}`);
+    
+            // Validate the feature flag name
+            const validFlags = ['ui-update', 'chat-bot', 'dark-mode'];
+            if (validFlags.includes(feature)) {
+            // Set the value of the flag based on the action
+            const newFlagValue = action === 'ENABLE';
+    
+            // Update the flag using LaunchDarkly API
+            ldClient.variation(feature, context, newFlagValue, (err, flagValue) => {
+                if (err) {
+                console.error('Error updating flag:', err);
+                return res.status(500).send('Error updating feature flag.');
+                }
+                console.log(feature, newFlagValue, flagValue);
+                res.send(`Feature "${feature}" has been ${flagValue ? 'enabled' : 'disabled'}.`);
+            });
+        } else {
+            res.send('Invalid feature flag name.');
+        }
+    }
     } catch(error) {
         console.error('Error during ChatGPT call:', error);
         res.status(500).send('Error processing the request.');

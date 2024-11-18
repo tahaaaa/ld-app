@@ -13,9 +13,25 @@ function App() {
 
   const [message, setMessage] = useState('');
   const [response, setResponse] = useState('');
+  const [darkModeLocal, setDarkModeLocal] = useState(false); //local dark mode state for toggling if feature is enabled
 
-  const {uiUpdate, chatBot} = useFlags(); //set LD flags
-  console.log('Feature states: ', {uiUpdate, chatBot})
+  const {uiUpdate, chatBot, darkMode} = useFlags(); //set LD flags
+  console.log('Feature states: ', {uiUpdate, chatBot, darkMode})
+
+  // Handle dark mode toggling locally
+  const toggleDarkMode = () => {
+    setDarkModeLocal(!darkModeLocal);
+  };
+
+  // Add the dark mode class to the body
+  useEffect(() => {
+    if (darkModeLocal && darkMode) {
+      console.log(darkModeLocal, darkMode);
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkModeLocal, darkMode]);  // This runs whenever darkMode changes
 
 
   //sending message from website form to the backend for processing
@@ -36,7 +52,7 @@ function App() {
       {/* Render the UI based on LD feature flag state */}
 
       {uiUpdate ? (
-        <div className = "new-ui">
+        <div className = {`new-ui ${darkModeLocal && darkMode ? 'bg-dark text-light' : 'bg-light text-dark'}`}>
           <h1 className = "text-primary">Feature Status</h1>
           <table className = "table table-striped">
             <thead>
@@ -75,6 +91,12 @@ function App() {
             <h4>Response:</h4>
             <p>{response}</p>
           </div>
+
+          {darkMode ? (<button className="btn btn-secondary mt-3" onClick={toggleDarkMode}>
+            Toggle Dark Mode
+            </button>) : 
+          (<p />)}
+
         </div>
 
       ) : (
