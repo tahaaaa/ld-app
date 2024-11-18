@@ -72,3 +72,74 @@ h1, h2, h4 {
 input {
   width: 70%;
 }
+
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: white;
+}
+
+body.dark-mode .form-control, 
+body.dark-mode .btn {
+  background-color: #555;
+  color: white;
+  border-color: #444;
+}
+
+body.dark-mode .form-control:focus, 
+body.dark-mode .btn:focus {
+  border-color: #666;
+}
+
+body.dark-mode .btn-primary {
+  background-color: #444;
+  border-color: #555;
+}
+
+body.dark-mode .btn-primary:hover {
+  background-color: #666;
+}
+
+/* When dark mode is enabled, override Bootstrap's table variables */
+body.dark-mode {
+  --bs-table-bg: #333 !important;           /* Dark background */
+  --bs-table-color: white !important;        /* White text color */
+  --bs-table-border-color: #444 !important;  /* Darker border color */
+  --bs-table-striped-bg: #444 !important;    /* Striped rows darker */
+  --bs-table-hover-bg: #555 !important;      /* Hover effect for rows */
+  --bs-table-active-bg: #666 !important;     /* Active row background */
+}
+
+/* Ensure table itself is styled in dark mode */
+body.dark-mode .table {
+  background-color: var(--bs-table-bg) !important;
+  color: var(--bs-table-color) !important;
+  border-color: var(--bs-table-border-color) !important;
+}
+
+/* Styling for table headers */
+body.dark-mode .table th {
+  background-color: #222 !important;  /* Dark header background */
+  color: white !important;             /* White text */
+}
+
+/* Styling for table rows (striped and hover effects) */
+body.dark-mode .table tbody tr:nth-of-type(odd) {
+  background-color: var(--bs-table-striped-bg) !important;
+}
+
+body.dark-mode .table tbody tr:hover {
+  background-color: var(--bs-table-hover-bg) !important;
+}
+
+/* Active row style */
+body.dark-mode .table tbody tr.table-active {
+  background-color: var(--bs-table-active-bg) !important;
+}
+
+/* Optional: Adjust table borders */
+body.dark-mode .table td,
+body.dark-mode .table th {
+  border-color: var(--bs-table-border-color) !important;
+}
