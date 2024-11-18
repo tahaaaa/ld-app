@@ -1,13 +1,13 @@
 # Setup and Instructions
 
-## 1. Clone repository.
+### 1. Clone repository.
 ```bash
 git clone https://github.com/tahaaaa/ld-app.git
 ```
 
-## 2. Update the .env file in the root of the project if required with your personal API keys.
+### 2. Update the .env file in the ```/ld-chat/``` directory of the project if required with your personal API keys.
 
-## 3. Start backend server.
+### 3. Start backend server.
 Server:
 ```bash
 cd ./ld-app/ld-chat
@@ -15,14 +15,14 @@ npm install
 node server.js
 ```
 
-## 4. Start frontend application.
+### 4. Start frontend application.
 ```bash
 cd ./ld-app/ld-chat/frontend
 npm install
 npm start
 ```
 
-## 5. By default, the backend will run on port 5000 and the frontend will be on port 3000.
+### 5. By default, the backend will run on port 5000 and the frontend will be on port 3000.
 Once running, access the app at:
 http://localhost:3000/
 
@@ -38,19 +38,19 @@ http://localhost:3000/
 - The trigger webhook URLs are hardcoded and must be changed if a new test environment is being used. (Can be found in ld-app/server.js)
 
 
-# App Basics
-The app consists of three main features -- a chat bot, a UI update, and a dark mode.
+# App Basics and Functionality
+The app consists of three main features -- a chat bot, a UI update, and a dark mode. The UI update is required to be on in order to access the other features. The chat bot is a LaunchDarkly assistant that can answer technical questions. Lastly, dark mode is a toggle but is targeted based on browser type (more in part 2 below).
 
-## Part 1: Release and Remediate
+### Part 1: Release and Remediate
 All three features can be deployed (toggled on) and rolled back (off) either directly through the application or via the LaunchDarkly web UI. All releases and changes are dynamic and require no page refreshes. You can test this by triggering off the problematic chat bot.
 
-## Part 2: Target
+### Part 2: Target
 The dark mode feature has been selectively rolled out to the three most popular browsers. You can spoof a user agent change using the browser dropdown and see how the dark mode feature availability is targeted to different audience segments. This is utilizing the context kind of user with a custom attribute for browsers.
 
-## Part 3: Metrics (incomplete)
+### Part 3: Metrics (incomplete)
 A metric for page load time has been added for monitoring. The frontend measures page load time and uses ldClient.track() to track this however it is not fully implemented with experimentation.
 
-## Part 4: Integrations
+### Part 4: Integrations
 The LaunchDarkly project is integrated into a Slack workspace where notifications about changes appear. The workspace URL is:
 https://launchdarklyt-y3h1453.slack.com
 And updates will appear in the #all-new-workspace channel.
