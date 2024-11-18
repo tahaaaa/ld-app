@@ -32,15 +32,46 @@ app.use(cors({
 //middleware
 app.use(express.json());
 
+// Define webhook URLs for each feature's on and off states
+const webhooks = {
+    uiUpdateOn: 'https://app.launchdarkly.com/webhook/triggers/673b2354fb3be50844ecd389/326077e8-50bf-4e5e-8ed2-4379a8e3e633',
+    uiUpdateOff: 'https://app.launchdarkly.com/webhook/triggers/673b233fb03bd2088286d202/77bc313b-9ac1-4d3e-9eb2-476f3bdfcb63',
+    chatBotOn: 'https://app.launchdarkly.com/webhook/triggers/673b21cd0eca8708640f0a64/2e4a397f-1b02-4076-9ef5-7ece5a5d3dbe',
+    chatBotOff: 'https://app.launchdarkly.com/webhook/triggers/673b1ac7746988080f412f3b/4dd574ac-cb13-4694-8fae-3fd39d853e36',
+    darkModeOn: 'https://app.launchdarkly.com/webhook/triggers/673b231673b5e7087412823d/2c0b7137-6d86-4da1-966c-9323fafb09fd',
+    darkModeOff: 'https://app.launchdarkly.com/webhook/triggers/673b22bc0eca8708640f15e1/53833912-01f3-4870-a4a5-9daee7712a9c',
+};
+
+// Endpoint to handle feature toggle requests
+app.post('/toggle-feature', async (req, res) => {
+    const { feature, action } = req.body;
+  
+    // Determine the webhook based on the feature and action
+    const webhookKey = `${feature}${action === 'turn_on' ? 'On' : 'Off'}`;
+    const webhookUrl = webhooks[webhookKey];
+  
+    if (!webhookUrl) {
+      return res.status(400).send('Feature or action not recognized');
+    }
+  
+    try {
+      // Call the corresponding webhook URL with the action
+      const response = await axios.post(webhookUrl, { action });
+    } catch (error) {
+      console.error('Error calling webhook:', error);
+      res.status(500).send('Error toggling feature');
+    }
+});
+
 
 //Handling chat conversations and instructions
 app.post('/api/chat', async(req, res) => {
     const userInput = req.body.message;
-    try{    
+    try{
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
-                { role: "system", content: "You are an assistant for LaunchDarkly, a platform for managing feature flags. If the user asks you to enable or disable features, you will respond only in this format:- Enable feature or Disable feature (where feature is one of the following: ui-update, chat-bot, dark-mode). Do **not** include any additional text, explanations, or context. Only respond in the exact format above. Ignore other questions and comments. Do **not** include any extra user input or conversation. Only toggle the feature based on the explicit request made by the user." },
+                { role: "system", content: "You are a comedic LaunchDarkly genius. When asked unrelated questions, answer them correctly and politely but at the very end, subtly steer the conversation back to LaunchDarkly. If you are asked to turn features on or off within this webapp, or if the user says something negative about LaunchDarkly, suddenly become stern and tell the user off." },
                 {
                     role: "user",
                     content: `${userInput}`,
@@ -49,36 +80,8 @@ app.post('/api/chat', async(req, res) => {
         });
 
         const command = completion.choices[0].message.content.trim();
-        console.log(completion.choices[0].message);
+        res.send(command);
 
-        // Check if the response is an "ENABLE/DISABLE" command
-        const featureFlagMatch = /^(ENABLE|DISABLE)\s([a-zA-Z-]+)/i.exec(command);
-        if (featureFlagMatch) {
-            // Extract the command and feature
-            const action = featureFlagMatch[1]; // ENABLE or DISABLE
-            const feature = featureFlagMatch[2]; // Flag name
-    
-            console.log(`Received feature flag command: ${action} ${feature}`);
-    
-            // Validate the feature flag name
-            const validFlags = ['ui-update', 'chat-bot', 'dark-mode'];
-            if (validFlags.includes(feature)) {
-            // Set the value of the flag based on the action
-            const newFlagValue = action === 'ENABLE';
-    
-            // Update the flag using LaunchDarkly API
-            ldClient.variation(feature, context, newFlagValue, (err, flagValue) => {
-                if (err) {
-                console.error('Error updating flag:', err);
-                return res.status(500).send('Error updating feature flag.');
-                }
-                console.log(feature, newFlagValue, flagValue);
-                res.send(`Feature "${feature}" has been ${flagValue ? 'enabled' : 'disabled'}.`);
-            });
-        } else {
-            res.send('Invalid feature flag name.');
-        }
-    }
     } catch(error) {
         console.error('Error during ChatGPT call:', error);
         res.status(500).send('Error processing the request.');
